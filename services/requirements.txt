@@ -6,3 +6,5 @@ uvicorn
 pydantic
 kaggle
 scikit-learn
+pillow
+python-multipart
