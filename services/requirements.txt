@@ -8,3 +8,4 @@ kaggle
 scikit-learn
 pillow
 python-multipart
+pandas
