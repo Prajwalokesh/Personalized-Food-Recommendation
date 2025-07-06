@@ -1,0 +1,311 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* NutriScan Theme Colors */
+  --color-nutriscan-primary: var(--nutriscan-primary);
+  --color-nutriscan-primary-hover: var(--nutriscan-primary-hover);
+  --color-nutriscan-primary-light: var(--nutriscan-primary-light);
+  --color-nutriscan-primary-dark: var(--nutriscan-primary-dark);
+  --color-nutriscan-slate-50: var(--nutriscan-slate-50);
+  --color-nutriscan-slate-100: var(--nutriscan-slate-100);
+  --color-nutriscan-slate-200: var(--nutriscan-slate-200);
+  --color-nutriscan-slate-300: var(--nutriscan-slate-300);
+  --color-nutriscan-slate-400: var(--nutriscan-slate-400);
+  --color-nutriscan-slate-500: var(--nutriscan-slate-500);
+  --color-nutriscan-slate-600: var(--nutriscan-slate-600);
+  --color-nutriscan-slate-700: var(--nutriscan-slate-700);
+  --color-nutriscan-slate-800: var(--nutriscan-slate-800);
+  --color-nutriscan-slate-900: var(--nutriscan-slate-900);
+  --color-nutriscan-accent-emerald: var(--nutriscan-accent-emerald);
+  --color-nutriscan-accent-emerald-light: var(--nutriscan-accent-emerald-light);
+  --color-nutriscan-accent-emerald-dark: var(--nutriscan-accent-emerald-dark);
+  --color-nutriscan-accent-rose: var(--nutriscan-accent-rose);
+  --color-nutriscan-accent-rose-light: var(--nutriscan-accent-rose-light);
+  --color-nutriscan-accent-rose-dark: var(--nutriscan-accent-rose-dark);
+  --color-nutriscan-accent-amber: var(--nutriscan-accent-amber);
+  --color-nutriscan-accent-amber-light: var(--nutriscan-accent-amber-light);
+  --color-nutriscan-accent-amber-dark: var(--nutriscan-accent-amber-dark);
+  --color-nutriscan-success: var(--nutriscan-success);
+  --color-nutriscan-border-light: var(--nutriscan-border-light);
+  --color-nutriscan-text-primary: var(--nutriscan-text-primary);
+  --color-nutriscan-text-secondary: var(--nutriscan-text-secondary);
+  --color-nutriscan-text-muted: var(--nutriscan-text-muted);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.47 0.13 263.89);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+
+  /* NutriScan Global Color Variables */
+  --nutriscan-primary: #4f46e5; /* indigo-600 */
+  --nutriscan-primary-hover: #4338ca; /* indigo-700 */
+  --nutriscan-primary-light: #eef2ff; /* indigo-50 */
+  --nutriscan-primary-dark: #1e1b4b; /* indigo-900/20 as bg */
+
+  --nutriscan-slate-50: #f8fafc;
+  --nutriscan-slate-100: #f1f5f9;
+  --nutriscan-slate-200: #e2e8f0;
+  --nutriscan-slate-300: #cbd5e1;
+  --nutriscan-slate-400: #94a3b8;
+  --nutriscan-slate-500: #64748b;
+  --nutriscan-slate-600: #475569;
+  --nutriscan-slate-700: #334155;
+  --nutriscan-slate-800: #1e293b;
+  --nutriscan-slate-900: #0f172a;
+
+  --nutriscan-accent-emerald: #059669; /* emerald-600 */
+  --nutriscan-accent-emerald-light: #ecfdf5; /* emerald-50 */
+  --nutriscan-accent-emerald-dark: #064e3b; /* emerald-900/20 */
+
+  --nutriscan-accent-rose: #e11d48; /* rose-600 */
+  --nutriscan-accent-rose-light: #fff1f2; /* rose-50 */
+  --nutriscan-accent-rose-dark: #881337; /* rose-900/20 */
+
+  --nutriscan-accent-amber: #d97706; /* amber-600 */
+  --nutriscan-accent-amber-light: #fffbeb; /* amber-50 */
+  --nutriscan-accent-amber-dark: #78350f; /* amber-900/20 */
+
+  --nutriscan-success: #22c55e; /* green-500 */
+  --nutriscan-border-light: var(--nutriscan-slate-200);
+  --nutriscan-text-primary: var(--nutriscan-slate-900);
+  --nutriscan-text-secondary: var(--nutriscan-slate-700);
+  --nutriscan-text-muted: var(--nutriscan-slate-600);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.47 0.13 263.89);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.47 0.13 263.89);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.47 0.13 263.89);
+}
+
+.dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+  --primary: #6366f1;
+  --primary-foreground: #f8fafc;
+  --secondary: #334155;
+  --secondary-foreground: #f1f5f9;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+  --accent: #475569;
+  --accent-foreground: #f1f5f9;
+  --destructive: #ef4444;
+  --border: #334155;
+  --input: #475569;
+  --ring: #6366f1;
+  --chart-1: #6366f1;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
+  --sidebar: #1e293b;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #6366f1;
+  --sidebar-primary-foreground: #f8fafc;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #f1f5f9;
+  --sidebar-border: #334155;
+  --sidebar-ring: #6366f1;
+
+  /* NutriScan Dark Mode Variables - Clean and Accessible */
+  --nutriscan-primary: #6366f1;
+  --nutriscan-primary-hover: #5855eb;
+  --nutriscan-primary-light: #312e81;
+  --nutriscan-primary-dark: #1e1b4b;
+
+  /* Dark mode slate palette - properly inverted for readability */
+  --nutriscan-slate-50: #0f172a; /* background */
+  --nutriscan-slate-100: #1e293b; /* cards, secondary background */
+  --nutriscan-slate-200: #334155; /* borders, dividers */
+  --nutriscan-slate-300: #475569; /* subtle accents */
+  --nutriscan-slate-400: #64748b; /* disabled text */
+  --nutriscan-slate-500: #94a3b8; /* muted text, placeholders */
+  --nutriscan-slate-600: #cbd5e1; /* secondary text */
+  --nutriscan-slate-700: #e2e8f0; /* primary text */
+  --nutriscan-slate-800: #f1f5f9; /* high contrast text */
+  --nutriscan-slate-900: #f8fafc; /* highest contrast text */
+
+  --nutriscan-accent-emerald: #10b981;
+  --nutriscan-accent-emerald-light: #065f46;
+  --nutriscan-accent-emerald-dark: #064e3b;
+
+  --nutriscan-accent-rose: #f43f5e;
+  --nutriscan-accent-rose-light: #9f1239;
+  --nutriscan-accent-rose-dark: #881337;
+
+  --nutriscan-accent-amber: #f59e0b;
+  --nutriscan-accent-amber-light: #92400e;
+  --nutriscan-accent-amber-dark: #78350f;
+
+  --nutriscan-success: #22c55e;
+  --nutriscan-border-light: #334155;
+  --nutriscan-text-primary: #f8fafc;
+  --nutriscan-text-secondary: #e2e8f0;
+  --nutriscan-text-muted: #94a3b8;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease,
+      border-color 0.3s ease;
+  }
+  body {
+    @apply bg-background text-foreground;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+
+  /* Smooth transitions for theme elements */
+  html {
+    transition: background-color 0.3s ease;
+  }
+
+  /* Smooth transitions for all interactive elements */
+  button,
+  [role="button"],
+  input,
+  select,
+  textarea,
+  .card,
+  .popover,
+  .dropdown {
+    transition: all 0.3s ease;
+  }
+
+  /* Enhanced icon transitions */
+  svg {
+    transition:
+      transform 0.3s ease,
+      opacity 0.3s ease;
+  }
+
+  /* Theme transition improvements */
+  [data-theme] {
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease,
+      border-color 0.3s ease;
+  }
+}
+
+/* Clean background patterns */
+.hero-gradient {
+  background: hsl(var(--background));
+}
+
+.food-pattern {
+  background: hsl(var(--background));
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Hover effects */
+.hover-lift {
+  transition:
+    transform 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px hsl(var(--primary) / 0.15);
+}
+
+/* Glass morphism effect */
+.glass {
+  background: hsl(var(--background) / 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid hsl(var(--border) / 0.5);
+}

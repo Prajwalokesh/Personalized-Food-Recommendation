@@ -1,0 +1,9 @@
+node_modules
+dist
+
+# env files (can opt-in for committing if needed)
+.env
+.env.local
+.env.config
+.env.development
+.env.production
