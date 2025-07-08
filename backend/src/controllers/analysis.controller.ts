@@ -1,20 +1,20 @@
-import { NextFunction, Request, Response } from "express";
-import FoodImage from "../models/FoodImage.model";
-import { sendError, sendSuccess } from "../utils/sendResponse";
-import path from "path";
-import fs from "fs/promises";
-import fsSync from "fs";
-import FormData from "form-data";
+import path from "node:path";
+import fs from "node:fs/promises";
+import fsSync from "node:fs";
 import axios from "axios";
-import Analysis from "../models/Analysis.model";
+import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
+import { z } from "zod/v4";
 import { foodItemMap } from "../constants/foods";
+import { sendError, sendSuccess } from "../utils/sendResponse";
 import {
   deleteAnalysisParamsSchema,
   historyQuerySchema,
   recommendationSchema,
 } from "../schema/analysis.schema";
-import { z } from "zod/v4";
+import Analysis from "../models/Analysis.model";
+import FoodImage from "../models/FoodImage.model";
+import FormData from "form-data";
 
 export async function getRecommendation(
   req: Request,

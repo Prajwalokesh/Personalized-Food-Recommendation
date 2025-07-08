@@ -1,8 +1,8 @@
 // Package Import
-import express, { NextFunction, Request, Response } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import "dotenv/config";
+import express, { NextFunction, Request, Response } from "express";
 
 // Custom methods Import
 import { ApiError } from "./utils/ApiError";
@@ -10,10 +10,10 @@ import { sendError, sendSuccess } from "./utils/sendResponse";
 import { connectDB } from "./config/db";
 
 // Routers Import
-import userRouter from "./routes/user.route";
 import authRouter from "./routes/auth.route";
 import analysisRouter from "./routes/analysis.route";
 import imageRouter from "./routes/image.route";
+import userRouter from "./routes/user.route";
 
 // Adding attributes to the Express Request Object
 declare global {

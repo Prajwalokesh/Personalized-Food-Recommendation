@@ -1,10 +1,10 @@
 import express from "express";
-import { checkAuth } from "../middlewares/auth.middleware";
 import {
   deleteAnalysisHistory,
   getAnalysisHistory,
   getRecommendation,
 } from "../controllers/analysis.controller";
+import { checkAuth } from "../middlewares/auth.middleware";
 import upload from "../config/multer";
 
 const router = express.Router();

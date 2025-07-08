@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { UserDocument, UserModel } from "../types/User";
 import bcrypt from "bcrypt";
+import { UserDocument, UserModel } from "../types/User";
 
 const userSchema = new mongoose.Schema<UserDocument, UserModel>(
   {

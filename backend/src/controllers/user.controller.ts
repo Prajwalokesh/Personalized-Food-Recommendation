@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import User from "../models/User.model";
+import { z } from "zod/v4";
 import { sendError, sendSuccess } from "../utils/sendResponse";
 import { registerSchema } from "../schema/user.schema";
-import { z } from "zod/v4";
+import User from "../models/User.model";
 
 export async function registerUser(
   req: Request,

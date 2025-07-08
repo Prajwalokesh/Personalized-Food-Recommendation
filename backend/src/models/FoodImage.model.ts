@@ -1,6 +1,6 @@
+import path from "node:path";
 import mongoose from "mongoose";
 import { FoodImageDocument, FoodImageModel } from "../types/FoodImage";
-import path from "node:path";
 
 const foodImageSchema = new mongoose.Schema<FoodImageDocument, FoodImageModel>(
   {

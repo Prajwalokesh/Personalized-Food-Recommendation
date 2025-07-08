@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import User from "../models/User.model";
-import { sendError, sendSuccess } from "../utils/sendResponse";
-import Session from "../models/Session.model";
-import { loginSchema } from "../schema/auth.schema";
 import { z } from "zod/v4";
+import { sendError, sendSuccess } from "../utils/sendResponse";
+import { loginSchema } from "../schema/auth.schema";
+import Session from "../models/Session.model";
+import User from "../models/User.model";
 
 export async function loginUser(
   req: Request,

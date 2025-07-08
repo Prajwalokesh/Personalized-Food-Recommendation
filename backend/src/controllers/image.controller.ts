@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import FoodImage from "../models/FoodImage.model";
 import { sendError } from "../utils/sendResponse";
+import FoodImage from "../models/FoodImage.model";
 
 export async function getFoodImage(
   req: Request,
