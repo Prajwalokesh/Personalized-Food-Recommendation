@@ -35,10 +35,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  Filter,
+  Info,
 } from "lucide-react";
 import { analysisService } from "@/services/analysis";
 import type { AnalysisHistoryItem, PaginationMeta } from "@/types/analysis";
 import { MEDICAL_CONDITIONS } from "@/types/analysis";
+import { motion } from "framer-motion";
 
 export default function HistoryPage() {
   const [historyData, setHistoryData] = useState<AnalysisHistoryItem[]>([]);
@@ -50,6 +53,7 @@ export default function HistoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Utility functions
   const getMedicalConditionLabel = (condition: string): string => {
@@ -98,6 +102,20 @@ export default function HistoryPage() {
     fetchHistory(1);
   }, []);
 
+  // Effect to handle modal body scrolling
+  useEffect(() => {
+    if (selectedItem) {
+      document.body.style.overflow = "hidden";
+      setIsModalOpen(true);
+    } else {
+      document.body.style.overflow = "";
+      setIsModalOpen(false);
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selectedItem]);
+
   const getRecommendationColor = (recommendation: string) => {
     switch (recommendation.toLowerCase()) {
       case "recommended":
@@ -143,215 +161,293 @@ export default function HistoryPage() {
     }
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 12,
+      },
+    },
+  };
+
   return (
     <ProtectedRoute>
-      <div className="bg-background min-h-screen">
+      <div className="min-h-screen bg-gradient-to-b from-white via-blue-50/30 to-white">
         <Navbar />
 
-        <section className="bg-background py-24">
+        <section className="py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-6xl">
-              <div className="mb-12 space-y-4 text-center">
+              <motion.div
+                className="mb-12 space-y-4 text-center"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
                 <Badge
                   variant="secondary"
-                  className="border-nutriscan-slate-200 bg-nutriscan-slate-100 dark:border-nutriscan-slate-700 dark:bg-nutriscan-slate-800/50 mx-auto w-fit"
+                  className="relative mx-auto w-fit border-blue-200 bg-blue-100/80 px-3 py-1.5 backdrop-blur-sm dark:border-blue-700 dark:bg-blue-900/50"
                 >
-                  <span className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 font-semibold">
-                    📜 Analysis History
+                  <History className="mr-1.5 h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                  <span className="font-semibold text-blue-700 dark:text-blue-300">
+                    Analysis Timeline
+                  </span>
+                  <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
                   </span>
                 </Badge>
-                <h1 className="text-nutriscan-slate-900 text-3xl font-bold md:text-4xl dark:text-white">
+                <h1 className="bg-gradient-to-r from-blue-600 via-blue-500 to-white bg-clip-text text-3xl font-bold text-transparent md:text-4xl lg:text-5xl dark:from-white dark:to-slate-400">
                   Your Food Analysis History
                 </h1>
-                <p className="text-muted-foreground mx-auto max-w-2xl text-xl">
+                <p className="text-muted-foreground mx-auto max-w-2xl text-lg md:text-xl">
                   Review your previous food analyses and track your health
                   journey. All your sessions are stored securely for your
                   reference.
                 </p>
-              </div>
+              </motion.div>
 
               {/* Loading State */}
               {isLoading && (
-                <Card className="border-nutriscan-slate-200 dark:border-nutriscan-slate-700 dark:bg-nutriscan-slate-900/50 bg-white">
-                  <CardContent className="py-12 text-center">
-                    <Loader2 className="text-nutriscan-slate-400 dark:text-nutriscan-slate-500 mx-auto mb-4 h-16 w-16 animate-spin" />
-                    <h3 className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100 mb-2 text-xl font-semibold">
-                      Loading History...
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Please wait while we fetch your analysis history.
-                    </p>
-                  </CardContent>
-                </Card>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <Card className="border-nutriscan-slate-200 dark:border-nutriscan-slate-700 dark:bg-nutriscan-slate-900/50 bg-white/70 backdrop-blur-sm">
+                    <CardContent className="py-12 text-center">
+                      <div className="relative mx-auto mb-4 h-16 w-16">
+                        <Loader2 className="text-nutriscan-slate-400 dark:text-nutriscan-slate-500 absolute inset-0 h-16 w-16 animate-spin" />
+                        <div className="bg-primary/20 absolute inset-0 h-16 w-16 animate-ping rounded-full"></div>
+                      </div>
+                      <h3 className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100 mb-2 text-xl font-semibold">
+                        Loading History...
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Please wait while we fetch your analysis history.
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               )}
 
               {/* Error State */}
               {error && !isLoading && (
-                <Card className="border-red-200 bg-red-50 dark:border-red-700 dark:bg-red-900/10">
-                  <CardContent className="py-12 text-center">
-                    <AlertTriangle className="mx-auto mb-4 h-16 w-16 text-red-500" />
-                    <h3 className="mb-2 text-xl font-semibold text-red-900 dark:text-red-100">
-                      Failed to Load History
-                    </h3>
-                    <p className="mb-6 text-red-700 dark:text-red-300">
-                      {error}
-                    </p>
-                    <Button
-                      onClick={() => fetchHistory(currentPage)}
-                      variant="outline"
-                      className="border-red-500 text-red-700 hover:bg-red-100 dark:text-red-300 dark:hover:bg-red-900/20"
-                    >
-                      Try Again
-                    </Button>
-                  </CardContent>
-                </Card>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: "spring", stiffness: 100 }}
+                >
+                  <Card className="border-red-200 bg-red-50/70 backdrop-blur-sm dark:border-red-800/70 dark:bg-red-950/30">
+                    <CardContent className="py-12 text-center">
+                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+                        <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+                      </div>
+                      <h3 className="mb-2 text-xl font-semibold text-red-900 dark:text-red-100">
+                        Failed to Load History
+                      </h3>
+                      <p className="mb-6 text-red-700 dark:text-red-300">
+                        {error}
+                      </p>
+                      <Button
+                        onClick={() => fetchHistory(currentPage)}
+                        className="bg-red-600 text-white transition-all duration-300 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
+                      >
+                        <AlertTriangle className="mr-2 h-4 w-4" />
+                        Try Again
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               )}
 
               {/* Empty State */}
               {!isLoading && !error && historyData.length === 0 && (
-                <Card className="border-nutriscan-slate-200 dark:border-nutriscan-slate-700 dark:bg-nutriscan-slate-900/50 bg-white">
-                  <CardContent className="py-12 text-center">
-                    <History className="text-nutriscan-slate-400 dark:text-nutriscan-slate-500 mx-auto mb-4 h-16 w-16" />
-                    <h3 className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100 mb-2 text-xl font-semibold">
-                      No Analysis History
-                    </h3>
-                    <p className="text-muted-foreground mb-6">
-                      You haven't analyzed any food items yet. Start by
-                      uploading a food image.
-                    </p>
-                    <Button
-                      asChild
-                      className="bg-nutriscan-primary hover:bg-nutriscan-primary-hover text-white"
-                    >
-                      <a href="/analyse">Start Analyzing</a>
-                    </Button>
-                  </CardContent>
-                </Card>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: "spring", stiffness: 100 }}
+                >
+                  <Card className="border-nutriscan-slate-200 dark:border-nutriscan-slate-700 dark:bg-nutriscan-slate-900/50 bg-white/70 backdrop-blur-sm">
+                    <CardContent className="py-12 text-center">
+                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800/60">
+                        <History className="text-nutriscan-slate-500 dark:text-nutriscan-slate-400 h-8 w-8" />
+                      </div>
+                      <h3 className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100 mb-2 text-xl font-semibold">
+                        No Analysis History
+                      </h3>
+                      <p className="text-muted-foreground mx-auto mb-6 max-w-md">
+                        You haven't analyzed any food items yet. Start by
+                        uploading a food image for analysis.
+                      </p>
+                      <Button
+                        asChild
+                        size="lg"
+                        className="bg-nutriscan-primary hover:bg-nutriscan-primary-hover text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+                      >
+                        <a href="/analyse">Start Analyzing</a>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               )}
 
               {/* History Data */}
               {!isLoading && !error && historyData.length > 0 && (
                 <div>
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <motion.div
+                    className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                  >
                     {historyData.map((item) => (
-                      <Card
-                        key={item._id}
-                        className="border-nutriscan-slate-200 dark:border-nutriscan-slate-700 dark:bg-nutriscan-slate-900/50 bg-white transition-shadow hover:shadow-lg"
-                      >
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <div className="text-muted-foreground flex items-center space-x-2 text-sm">
-                              <Calendar className="h-4 w-4" />
-                              <span>{formatDate(item.createdAt)}</span>
-                            </div>
-                            <div className="text-muted-foreground flex items-center space-x-2 text-sm">
-                              <Clock className="h-4 w-4" />
-                              <span>{formatTime(item.createdAt)}</span>
-                            </div>
-                          </div>
-                          <CardTitle className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100 text-lg">
-                            {item.result.predicted_food}
-                          </CardTitle>
-                          <CardDescription className="flex items-center space-x-2">
-                            <Heart className="text-nutriscan-accent-rose h-4 w-4" />
-                            <span>
-                              Condition:{" "}
-                              {getMedicalConditionLabel(item.medicalCondition)}
-                            </span>
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            <div>
-                              <span className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 text-sm font-medium">
-                                Nutrient Highlights:
-                              </span>
-                              <Badge variant="outline" className="ml-2">
-                                {item.result.nutrient_highlights}
-                              </Badge>
-                            </div>
-
-                            <div>
-                              <span className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 text-sm font-medium">
-                                Recommendation:
-                              </span>
-                              <div
-                                className={`mt-1 rounded px-2 py-1 text-xs font-semibold ${getRecommendationColor(item.result.recommendation)}`}
-                              >
-                                {item.result.recommendation}
+                      <motion.div key={item._id}>
+                        <Card className="border-nutriscan-slate-200 dark:border-nutriscan-slate-700 dark:bg-nutriscan-slate-900/50 group hover:border-primary/20 h-full bg-white/70 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <div className="text-muted-foreground flex items-center space-x-2 rounded-full bg-slate-50 px-2 py-1 text-sm dark:bg-slate-800/50">
+                                <Calendar className="h-3.5 w-3.5" />
+                                <span>{formatDate(item.createdAt)}</span>
+                              </div>
+                              <div className="text-muted-foreground flex items-center space-x-2 rounded-full bg-slate-50 px-2 py-1 text-sm dark:bg-slate-800/50">
+                                <Clock className="h-3.5 w-3.5" />
+                                <span>{formatTime(item.createdAt)}</span>
                               </div>
                             </div>
+                            <CardTitle className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100 group-hover:text-primary mt-3 text-lg transition-colors">
+                              {item.result.predicted_food}
+                            </CardTitle>
+                            <CardDescription className="flex items-center space-x-2">
+                              <Heart className="text-nutriscan-accent-rose h-4 w-4" />
+                              <span>
+                                Condition:{" "}
+                                <span className="font-medium">
+                                  {getMedicalConditionLabel(
+                                    item.medicalCondition,
+                                  )}
+                                </span>
+                              </span>
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              <div className="flex flex-wrap gap-2">
+                                <span className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 text-sm font-medium whitespace-nowrap">
+                                  Nutrient Highlights:
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="bg-slate-50/50 font-medium dark:bg-slate-800/50"
+                                >
+                                  {item.result.nutrient_highlights}
+                                </Badge>
+                              </div>
 
-                            <div className="flex space-x-2 pt-4">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSelectedItem(item)}
-                                className="flex-1"
-                              >
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={isDeleting === item._id}
-                                    className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
-                                  >
-                                    {isDeleting === item._id ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                      <Trash2 className="h-4 w-4" />
-                                    )}
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                      Delete Analysis
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to delete this
-                                      analysis? This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>
-                                      Cancel
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => handleDelete(item._id)}
-                                      className="bg-red-600 text-white hover:bg-red-700"
+                              <div>
+                                <span className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-1.5 block text-sm font-medium">
+                                  Recommendation:
+                                </span>
+                                <div
+                                  className={`mt-1 rounded-lg px-2.5 py-1.5 text-sm font-semibold ${getRecommendationColor(
+                                    item.result.recommendation,
+                                  )}`}
+                                >
+                                  {item.result.recommendation}
+                                </div>
+                              </div>
+
+                              <div className="flex space-x-2 pt-4">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setSelectedItem(item)}
+                                  className="group-hover:border-primary/30 flex-1 bg-gradient-to-r from-blue-600 to-blue-500 text-white transition-all duration-300"
+                                >
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Details
+                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      disabled={isDeleting === item._id}
+                                      className="text-red-600 transition-all duration-300 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
                                     >
-                                      Delete
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                                      {isDeleting === item._id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Trash2 className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent className="bg-white/90 backdrop-blur-md dark:bg-slate-900/90">
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>
+                                        Delete Analysis
+                                      </AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to delete this
+                                        analysis? This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel className="transition-colors hover:bg-slate-100 dark:hover:bg-slate-800">
+                                        Cancel
+                                      </AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDelete(item._id)}
+                                        className="bg-red-600 text-white transition-colors hover:bg-red-700"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
                     ))}
-                  </div>
+                  </motion.div>
 
                   {/* Pagination */}
                   {pagination && pagination.totalPages > 1 && (
-                    <div className="mt-8 flex items-center justify-center space-x-2">
+                    <motion.div
+                      className="mt-10 flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-2"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => fetchHistory(pagination.currentPage - 1)}
                         disabled={!pagination.hasPrevPage || isLoading}
-                        className="flex items-center"
+                        className="flex items-center transition-all hover:shadow-md"
                       >
                         <ChevronLeft className="mr-1 h-4 w-4" />
                         Previous
                       </Button>
 
-                      <div className="flex items-center space-x-1">
+                      <div className="flex items-center space-x-1.5">
                         {Array.from(
                           { length: Math.min(5, pagination.totalPages) },
                           (_, i) => {
@@ -380,7 +476,11 @@ export default function HistoryPage() {
                                 size="sm"
                                 onClick={() => fetchHistory(pageNum)}
                                 disabled={isLoading}
-                                className="h-8 w-8 p-0"
+                                className={`h-9 w-9 p-0 transition-transform ${
+                                  pageNum === pagination.currentPage
+                                    ? "scale-110 shadow-md"
+                                    : "hover:-translate-y-0.5 hover:shadow-sm"
+                                }`}
                               >
                                 {pageNum}
                               </Button>
@@ -394,12 +494,12 @@ export default function HistoryPage() {
                         size="sm"
                         onClick={() => fetchHistory(pagination.currentPage + 1)}
                         disabled={!pagination.hasNextPage || isLoading}
-                        className="flex items-center"
+                        className="flex items-center transition-all hover:shadow-md"
                       >
                         Next
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* Pagination Info */}
@@ -415,158 +515,202 @@ export default function HistoryPage() {
 
               {/* Detailed View Modal */}
               {selectedItem && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                  <Card className="border-nutriscan-slate-200 dark:border-nutriscan-slate-700 dark:bg-nutriscan-slate-900/95 max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-white">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100">
-                          Analysis Details
-                        </CardTitle>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedItem(null)}
-                        >
-                          ×
-                        </Button>
-                      </div>
-                      <CardDescription>
-                        {formatDate(selectedItem.createdAt)} at{" "}
-                        {formatTime(selectedItem.createdAt)}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100 mb-2 text-lg font-semibold">
-                            {selectedItem.result.predicted_food}
-                          </h3>
-                          <p className="text-muted-foreground">
-                            Medical Condition:{" "}
-                            {getMedicalConditionLabel(
-                              selectedItem.medicalCondition,
-                            )}
-                          </p>
-                        </div>
-
-                        {/* Food Image */}
-                        <div>
-                          <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-2 font-medium">
-                            Food Image
-                          </h4>
-                          <img
-                            src={analysisService.getFoodImageUrl(
-                              selectedItem.foodImage.fileId,
-                            )}
-                            alt={selectedItem.result.predicted_food}
-                            className="border-nutriscan-slate-200 dark:border-nutriscan-slate-700 w-full max-w-sm rounded-lg border"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = "/placeholder-food.jpg";
-                            }}
-                          />
-                        </div>
-
-                        <div>
-                          <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-1 font-medium">
-                            Nutrient Highlights
-                          </h4>
-                          <Badge variant="outline">
-                            {selectedItem.result.nutrient_highlights}
-                          </Badge>
-                        </div>
-
-                        <div>
-                          <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-2 font-medium">
-                            Recommendation
-                          </h4>
-                          <div
-                            className={`rounded-lg border px-3 py-2 ${getRecommendationColor(selectedItem.result.recommendation)}`}
+                <motion.div
+                  className="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black/60 p-4 backdrop-blur-sm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setSelectedItem(null)}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="my-auto w-full max-w-2xl"
+                  >
+                    <Card className="border-nutriscan-slate-200 dark:border-nutriscan-slate-700 dark:bg-nutriscan-slate-900/95 mx-auto max-h-[85vh] w-full max-w-2xl overflow-y-auto bg-white/95 shadow-2xl backdrop-blur-md">
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100 text-xl">
+                            Analysis Details
+                          </CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedItem(null)}
+                            className="h-8 w-8 rounded-full p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
                           >
-                            <span className="font-semibold">
-                              {selectedItem.result.recommendation}
-                            </span>
-                          </div>
+                            ×
+                          </Button>
                         </div>
-
-                        <div>
-                          <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-2 font-medium">
-                            Alternative Suggestions
-                          </h4>
-                          <p className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100">
-                            {selectedItem.result.alternative_suggestion}
-                          </p>
-                        </div>
-
-                        <div>
-                          <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-2 font-medium">
-                            Safety Information
-                          </h4>
-                          <div
-                            className={`rounded-lg border px-3 py-2 ${selectedItem.result.is_safe_for_condition ? "border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300" : "border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"}`}
-                          >
-                            <p className="font-medium">
-                              {selectedItem.result.is_safe_for_condition
-                                ? "✅ Safe"
-                                : "⚠️ Not Safe"}{" "}
-                              for{" "}
+                        <CardDescription className="flex flex-wrap items-center gap-3">
+                          <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">
+                            <Calendar className="h-3.5 w-3.5" />
+                            {formatDate(selectedItem.createdAt)}
+                          </span>
+                          <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">
+                            <Clock className="h-3.5 w-3.5" />
+                            {formatTime(selectedItem.createdAt)}
+                          </span>
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-6">
+                          <div>
+                            <h3 className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100 mb-2 text-xl font-semibold">
+                              {selectedItem.result.predicted_food}
+                            </h3>
+                            <Badge
+                              variant="outline"
+                              className="bg-slate-50/50 dark:bg-slate-800/50"
+                            >
+                              Medical Condition:{" "}
                               {getMedicalConditionLabel(
                                 selectedItem.medicalCondition,
                               )}
-                            </p>
-                            <p className="mt-1 text-sm">
-                              {selectedItem.result.safety_message}
-                            </p>
+                            </Badge>
+                          </div>
+
+                          {/* Food Image */}
+                          <div className="overflow-hidden rounded-lg">
+                            <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-2 flex items-center font-medium">
+                              <Info className="mr-1.5 h-4 w-4" />
+                              Food Image
+                            </h4>
+                            <div className="relative aspect-video overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
+                              <img
+                                src={analysisService.getFoodImageUrl(
+                                  selectedItem.foodImage.fileId,
+                                )}
+                                alt={selectedItem.result.predicted_food}
+                                className="h-full w-full transform-gpu rounded-lg object-cover object-center transition-transform duration-500 hover:scale-105"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = "/placeholder-food.jpg";
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div>
+                              <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-2 flex items-center font-medium">
+                                <Filter className="mr-1.5 h-4 w-4" />
+                                Nutrient Highlights
+                              </h4>
+                              <Badge
+                                variant="outline"
+                                className="bg-slate-50/50 text-sm dark:bg-slate-800/50"
+                              >
+                                {selectedItem.result.nutrient_highlights}
+                              </Badge>
+                            </div>
+
+                            <div>
+                              <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-2 flex items-center font-medium">
+                                <Info className="mr-1.5 h-4 w-4" />
+                                Recommendation
+                              </h4>
+                              <div
+                                className={`rounded-lg border px-3 py-2 ${getRecommendationColor(
+                                  selectedItem.result.recommendation,
+                                )}`}
+                              >
+                                <span className="font-semibold">
+                                  {selectedItem.result.recommendation}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-2 flex items-center font-medium">
+                              <Info className="mr-1.5 h-4 w-4" />
+                              Alternative Suggestions
+                            </h4>
+                            <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-700 dark:bg-slate-800/50">
+                              <p className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100">
+                                {selectedItem.result.alternative_suggestion}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-2 flex items-center font-medium">
+                              <AlertTriangle className="mr-1.5 h-4 w-4" />
+                              Safety Information
+                            </h4>
+                            <div
+                              className={`rounded-lg border px-3 py-3 ${
+                                selectedItem.result.is_safe_for_condition
+                                  ? "border-green-200 bg-green-50/80 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300"
+                                  : "border-red-200 bg-red-50/80 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
+                              }`}
+                            >
+                              <p className="flex items-center font-medium">
+                                {selectedItem.result.is_safe_for_condition
+                                  ? "✅ Safe"
+                                  : "⚠️ Not Safe"}{" "}
+                                for{" "}
+                                {getMedicalConditionLabel(
+                                  selectedItem.medicalCondition,
+                                )}
+                              </p>
+                              <p className="border-opacity-20 mt-2 border-t border-current pt-2 text-sm">
+                                {selectedItem.result.safety_message}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-3 pt-4 sm:flex-row">
+                            <Button
+                              variant="outline"
+                              onClick={() => setSelectedItem(null)}
+                              className="flex-1 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
+                            >
+                              Close
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className="text-red-600 transition-all duration-300 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-white/90 backdrop-blur-md dark:bg-slate-900/90">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Delete Analysis
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this
+                                    analysis? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => {
+                                      handleDelete(selectedItem._id);
+                                      setSelectedItem(null);
+                                    }}
+                                    className="bg-red-600 text-white hover:bg-red-700"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </div>
-
-                        <div className="flex space-x-3 pt-4">
-                          <Button
-                            variant="outline"
-                            onClick={() => setSelectedItem(null)}
-                            className="flex-1"
-                          >
-                            Close
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Delete Analysis
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete this analysis?
-                                  This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => {
-                                    handleDelete(selectedItem._id);
-                                    setSelectedItem(null);
-                                  }}
-                                  className="bg-red-600 text-white hover:bg-red-700"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </motion.div>
               )}
             </div>
           </div>

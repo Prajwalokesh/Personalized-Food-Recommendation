@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Utensils, Sparkles } from "lucide-react";
+import { Utensils, Sparkles, Stethoscope } from "lucide-react";
 
 interface AppLogoProps {
   className?: string;
@@ -45,7 +45,7 @@ export default function AppLogo({
         className={`relative inline-flex items-center justify-center ${className}`}
       >
         <div className="bg-nutriscan-primary rounded-lg p-2 shadow-lg">
-          <Utensils className={`${currentSize.icon} text-white`} />
+          <Stethoscope className={`${currentSize.icon} text-white`} />
           <Sparkles className="text-nutriscan-accent-amber absolute -top-1 -right-1 h-3 w-3" />
         </div>
       </div>
@@ -58,7 +58,7 @@ export default function AppLogo({
         href="/"
         className={`flex items-center ${currentSize.gap} ${className}`}
       >
-        <Utensils
+        <Stethoscope
           className={`${currentSize.icon} text-nutriscan-slate-900 dark:text-nutriscan-slate-100`}
         />
         {showText && (
@@ -81,7 +81,7 @@ export default function AppLogo({
       <div className="relative">
         {/* Main icon container */}
         <div className="bg-nutriscan-primary group-hover:bg-nutriscan-primary-hover rounded-lg p-1.5 shadow-lg transition-all duration-300 group-hover:shadow-xl">
-          <Utensils className={`${currentSize.icon} text-white`} />
+          <Stethoscope className={`${currentSize.icon} text-white`} />
 
           {/* Sparkle accent */}
           <Sparkles className="text-nutriscan-accent-amber group-hover:text-nutriscan-accent-amber/80 absolute -top-0.5 -right-0.5 h-3 w-3 transition-colors duration-300" />
