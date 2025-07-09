@@ -141,9 +141,9 @@ def extract_safety_info_from_markdown(markdown_text: str) -> tuple[bool, str]:
                 safety_section += line.strip() + " "
         
         # Remove markdown formatting (bold, italics, etc.)
-        safety_section = re.sub(r'\*\*(.*?)\*\*', r'\1', safety_section)  # Remove bold
-        safety_section = re.sub(r'\*(.*?)\*', r'\1', safety_section)      # Remove italics
-        safety_section = re.sub(r'`(.*?)`', r'\1', safety_section)        # Remove code blocks
+        safety_section = re.sub(r'\*\*(.*?)\*\*', r'\1', safety_section)  
+        safety_section = re.sub(r'\*(.*?)\*', r'\1', safety_section)      
+        safety_section = re.sub(r'`(.*?)`', r'\1', safety_section)        
         
         safety_lower = safety_section.lower()
         
