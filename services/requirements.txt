@@ -9,3 +9,7 @@ scikit-learn
 pillow
 python-multipart
 pandas
+langchain
+groq
+langchain_community
+python-dotenv

@@ -1,7 +1,5 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import tensorflow as tf
 from tensorflow.keras.applications.efficientnet import preprocess_input
@@ -12,7 +10,16 @@ from PIL import Image
 import os
 import pickle
 import pandas as pd
-from typing import Optional, List
+from dotenv import load_dotenv
+import os
+from groq import Groq
+import re
+
+load_dotenv()
+
+groq_api_key = os.getenv("GROQ_API_KEY")
+client = Groq(api_key=groq_api_key)
+
 app = FastAPI()
 
 app.add_middleware(
@@ -31,15 +38,54 @@ class PredictionResponse(BaseModel):
 class HealthRecommendationResponse(BaseModel):
     predicted_class: str
     confidence: float
-    nutrient_highlights: str
-    recommendation: str
-    alternative_suggestion: str
-    is_safe_for_condition: bool
-    safety_message: str
+    health_analysis: str
+    safety_message: str 
     message: str
 
 class HealthResponse(BaseModel):
     status: str
+
+health_prompt = (
+    "You are a professional health expert specializing in dietary recommendations for various medical conditions.\n"
+    "You have been asked to analyze a specific food item for someone with a particular medical condition.\n\n"
+    "### Rules:\n"
+    "- Provide comprehensive health analysis based on nutritional science\n"
+    "- Sound professional and authoritative, like a real healthcare professional\n"
+    "- Focus on evidence-based recommendations and clear guidance\n"
+    "- Cover all essential health aspects:\n"
+    "  * Nutritional composition and key nutrients present\n"
+    "  * Medical compatibility with the specific condition\n"
+    "  * Safety assessment for consumption\n"
+    "  * Effects on the medical condition\n"
+    "  * Risk factors and preventive measures\n"
+    "  * Alternative healthier options when applicable\n"
+    "- Use clear, structured markdown format with proper sections\n"
+    "- Include specific nutritional values and medical insights\n"
+    "- Provide actionable recommendations for the patient\n\n"
+    "### Input:\n"
+    f"FOOD ITEM: {{food}}\n"
+    f"MEDICAL CONDITION: {{condition}}\n\n"
+    "### Analysis Requirements:\n"
+    "Conduct a thorough health analysis covering nutritional assessment, medical compatibility,\n"
+    "safety evaluation, and provide specific recommendations for this food-condition combination.\n\n"
+    "### Format your response exactly as follows:\n\n"
+    "# Health Analysis: {food} for {condition}\n\n"
+    "## 🥗 Nutrient Highlights\n\n"
+    "[Provide detailed nutritional breakdown with bullet points using - and ** for bold]\n\n"
+    "## 📋 Recommendation\n\n"
+    "[Give specific, actionable recommendations with bullet points]\n\n"
+    "## 🔄 Alternative Suggestions\n\n"
+    "[Suggest healthier alternatives with bullet points]\n\n"
+    "## ⚠️ Safety Assessment\n\n"
+    "[Assess safety level and provide clear safety guidance]\n\n"
+    "## 📊 Effects on Condition\n\n"
+    "[Explain positive and negative effects with bullet points]\n\n"
+    "## 🚨 Risk Factors\n\n"
+    "[Identify risk level and important factors with bullet points]\n\n"
+    "Provide your comprehensive health analysis now:"
+)
+
+
 
 def load_and_preprocess_image(img_bytes):
     try:
@@ -68,7 +114,6 @@ with open(encoder_path, 'rb') as f:
     label_encoder = pickle.load(f)
     food_classes = list(label_encoder.classes_)
 
-# Load health recommendation data
 csv_path = "notebook/dataset/indian_food_with_synthetic.csv"
 try:
     import pandas as pd
@@ -78,54 +123,39 @@ except Exception as e:
     print(f"Warning: Could not load health data - {e}")
     health_data = None
 
-def get_health_recommendation(food_item: str, medical_condition: str):
-    """Get health recommendation for a specific food item and medical condition"""
-    if health_data is None:
-        return None
-    
-    # Filter data for the specific food and medical condition
-    filtered_data = health_data[
-        (health_data['Food_Item'].str.lower() == food_item.lower()) & 
-        (health_data['Medical_Condition'].str.lower() == medical_condition.lower())
-    ]
-    
-    if not filtered_data.empty:
-        row = filtered_data.iloc[0]
-        return {
-            'nutrient_highlights': row['Nutrient_Highlights'],
-            'recommendation': row['Recommendation'],
-            'alternative_suggestion': row['Alternative_Suggestion'],
-            'affected_nutrient': row['Affected_Nutrient']
-        }
-    
-    # If no exact match, try to find the food item with any condition for general info
-    food_data = health_data[health_data['Food_Item'].str.lower() == food_item.lower()]
-    if not food_data.empty:
-        row = food_data.iloc[0]
-        return {
-            'nutrient_highlights': row['Nutrient_Highlights'],
-            'recommendation': 'Consult with healthcare provider',
-            'alternative_suggestion': 'General healthy alternatives',
-            'affected_nutrient': 'Various'
-        }
-    
-    return None
-
-def is_food_safe_for_condition(recommendation: str) -> tuple[bool, str]:
-    """Determine if food is safe based on recommendation"""
-    recommendation_lower = recommendation.lower()
-    
-    if 'avoid' in recommendation_lower:
-        return False, "❌ This food should be avoided for your medical condition."
-    elif 'best avoided' in recommendation_lower:
-        return False, "⚠️ This food is best avoided for your medical condition."
-    elif 'recommended' in recommendation_lower:
-        return True, "✅ This food is recommended for your medical condition."
-    elif 'moderate intake' in recommendation_lower:
-        return True, "⚠️ This food can be consumed in moderation for your medical condition."
-    elif 'consume with care' in recommendation_lower:
-        return True, "⚠️ You can consume this food but with caution for your medical condition."
-    else:
+def extract_safety_info_from_markdown(markdown_text: str) -> tuple[bool, str]:
+    """Extract safety information from markdown response"""
+    try:
+        # Look for safety assessment section
+        safety_section = ""
+        lines = markdown_text.split('\n')
+        in_safety_section = False
+        
+        for line in lines:
+            if '## ⚠️ Safety Assessment' in line:
+                in_safety_section = True
+                continue
+            elif line.startswith('## ') and in_safety_section:
+                break
+            elif in_safety_section and line.strip():
+                safety_section += line.strip() + " "
+        
+        # Remove markdown formatting (bold, italics, etc.)
+        safety_section = re.sub(r'\*\*(.*?)\*\*', r'\1', safety_section)  # Remove bold
+        safety_section = re.sub(r'\*(.*?)\*', r'\1', safety_section)      # Remove italics
+        safety_section = re.sub(r'`(.*?)`', r'\1', safety_section)        # Remove code blocks
+        
+        safety_lower = safety_section.lower()
+        
+        if 'avoid' in safety_lower or 'not safe' in safety_lower or 'should not' in safety_lower:
+            return False, "❌ This food should be avoided for your medical condition."
+        elif 'safe' in safety_lower and 'not' not in safety_lower:
+            return True, "✅ This food is safe for your medical condition."
+        elif 'caution' in safety_lower or 'moderate' in safety_lower or 'with care' in safety_lower:
+            return True, "⚠️ This food can be consumed with caution for your medical condition."
+        else:
+            return True, "ℹ️ General caution advised. Please consult with your healthcare provider."
+    except:
         return True, "ℹ️ General caution advised. Please consult with your healthcare provider."
 
 @app.get("/", response_model=HealthResponse)
@@ -159,7 +189,7 @@ async def predict_food(file: UploadFile = File(...)):
 @app.post("/predict-health", response_model=HealthRecommendationResponse)
 async def predict_food_with_health_recommendation(
     file: UploadFile = File(...), 
-    medical_condition: str = "diabetes"  # Default condition, can be passed as form data
+    medical_condition: str = "diabetes"  
 ):
     try:
         img_bytes = await file.read()
@@ -172,32 +202,31 @@ async def predict_food_with_health_recommendation(
         predicted_class = food_classes[predicted_class_idx]
         confidence = float(predicted_probabilities[predicted_class_idx])
         
-        health_rec = get_health_recommendation(predicted_class, medical_condition)
+        response = client.chat.completions.create(
+            model = "meta-llama/llama-4-scout-17b-16e-instruct",
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You're a health expert specializing in dietary recommendations for various medical conditions. Your task is to provide health advice in markdown format with clear sections and emojis."
+                },
+                {
+                    "role": "user",
+                    "content": health_prompt.format(food=predicted_class, condition=medical_condition)
+                }
+            ],
+            temperature = 0.7,   
+        )
+        health_recommendation = response.choices[0].message.content.strip()
         
-        if health_rec:
-            is_safe, safety_message = is_food_safe_for_condition(health_rec['recommendation'])
-            
-            return HealthRecommendationResponse(
-                predicted_class=predicted_class,
-                confidence=round(confidence * 100, 2),
-                nutrient_highlights=health_rec['nutrient_highlights'],
-                recommendation=health_rec['recommendation'],
-                alternative_suggestion=health_rec['alternative_suggestion'],
-                is_safe_for_condition=is_safe,
-                safety_message=safety_message,
-                message="Prediction and health recommendation successful"
-            )
-        else:
-            return HealthRecommendationResponse(
-                predicted_class=predicted_class,
-                confidence=round(confidence * 100, 2),
-                nutrient_highlights="Information not available",
-                recommendation="Consult with healthcare provider",
-                alternative_suggestion="General healthy alternatives recommended",
-                is_safe_for_condition=True,
-                safety_message="ℹ️ No specific data available for this food and condition combination.",
-                message="Prediction successful, but health data not found for this food item"
-            )
+        is_safe, safety_message = extract_safety_info_from_markdown(health_recommendation)
+        
+        return HealthRecommendationResponse(
+            predicted_class=predicted_class,
+            confidence=round(confidence * 100, 2),
+            health_analysis=health_recommendation,
+            safety_message=safety_message,
+            message="Health analysis completed successfully"
+        )
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
