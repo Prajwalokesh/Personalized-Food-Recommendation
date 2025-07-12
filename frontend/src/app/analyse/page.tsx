@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -178,22 +181,6 @@ export default function AnalysePage() {
       );
     } finally {
       setIsAnalyzing(false);
-    }
-  };
-
-  const getRecommendationColor = (recommendation: string) => {
-    switch (recommendation.toLowerCase()) {
-      case "recommended":
-        return "text-green-600 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/20 dark:border-green-800";
-      case "moderate intake":
-        return "text-yellow-600 bg-yellow-50 border-yellow-200 dark:text-yellow-400 dark:bg-yellow-900/20 dark:border-yellow-800";
-      case "avoid":
-      case "best avoided at night":
-        return "text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-900/20 dark:border-red-800";
-      case "consume with care":
-        return "text-orange-600 bg-orange-50 border-orange-200 dark:text-orange-400 dark:bg-orange-900/20 dark:border-orange-800";
-      default:
-        return "text-gray-600 bg-gray-50 border-gray-200 dark:text-gray-400 dark:bg-gray-900/20 dark:border-gray-800";
     }
   };
 
@@ -822,35 +809,6 @@ export default function AnalysePage() {
                       transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
                     />
                     <CardHeader className="relative border-b border-slate-200/50 bg-gradient-to-r from-blue-50 to-white pb-6 dark:border-slate-700/30 dark:from-blue-900/20 dark:to-zinc-900/50">
-                      {/* Status indicator */}
-                      <div className="mb-2 flex justify-between">
-                        <Badge
-                          variant="outline"
-                          className="border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-zinc-900 dark:text-slate-300"
-                        >
-                          Analysis ID:{" "}
-                          {analysisData?.id?.substring(0, 8) || "N/A"}
-                        </Badge>
-
-                        <Badge
-                          className={`${
-                            analysisResult.is_safe_for_condition
-                              ? "border-green-200 bg-green-100 text-green-700 dark:border-green-900 dark:bg-green-900/20 dark:text-green-400"
-                              : "border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-900 dark:bg-amber-900/20 dark:text-amber-400"
-                          }`}
-                        >
-                          {analysisResult.is_safe_for_condition ? (
-                            <span className="flex items-center gap-1">
-                              <ShieldCheck className="h-3 w-3" /> Safe
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" /> Caution
-                            </span>
-                          )}
-                        </Badge>
-                      </div>
-
                       <div className="flex items-center gap-3">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-green-600 to-emerald-500 text-white shadow-md dark:from-green-500 dark:to-emerald-400">
                           <CheckCircle className="h-6 w-6" />
@@ -1006,89 +964,33 @@ export default function AnalysePage() {
 
                           <div className="space-y-2">
                             <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                              Nutrient Information
+                              Safety Message
                             </h4>
                             <p className="text-sm text-slate-600 dark:text-slate-400">
-                              {analysisResult.nutrient_highlights}
+                              {analysisResult.safety_message}
                             </p>
                           </div>
                         </div>
                       </div>
 
-                      {/* Right column - Analysis Details */}
+                      {/* Right column - Health Analysis */}
                       <div className="space-y-6 lg:col-span-3">
-                        {/* Safety Status */}
-                        <div
-                          className={`rounded-xl p-5 shadow-md ${
-                            analysisResult?.is_safe_for_condition
-                              ? "border border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-900/10"
-                              : "border border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/10"
-                          }`}
-                        >
-                          <div className="mb-4 flex items-center justify-between">
-                            <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                              Safety Analysis
-                            </h3>
-                            <Badge
-                              className={`${
-                                analysisResult?.is_safe_for_condition
-                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                              }`}
-                            >
-                              {analysisResult?.is_safe_for_condition
-                                ? "Safe"
-                                : "Caution Required"}
-                            </Badge>
-                          </div>
-
-                          <p
-                            className={`rounded-lg p-3 text-sm ${
-                              analysisResult.is_safe_for_condition
-                                ? "bg-white text-slate-700 dark:bg-white/5 dark:text-slate-300"
-                                : "bg-white text-slate-700 dark:bg-white/5 dark:text-slate-300"
-                            }`}
-                          >
-                            {analysisResult.safety_message}
-                          </p>
-                        </div>
-
-                        {/* Recommendation */}
+                        {/* Health Analysis */}
                         <div className="space-y-3 rounded-xl border border-slate-200 bg-white/70 p-5 backdrop-blur-sm dark:border-slate-700 dark:bg-zinc-900/30">
                           <div className="flex items-center justify-between">
                             <h3 className="font-medium text-slate-900 dark:text-slate-100">
-                              Dietary Recommendation
+                              Health Analysis
                             </h3>
+                            <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                              <Brain className="mr-1 h-3 w-3" /> AI Analysis
+                            </Badge>
                           </div>
 
-                          <div
-                            className={`rounded-lg border p-3 ${analysisResult ? getRecommendationColor(analysisResult.recommendation) : ""}`}
-                          >
-                            <p className="font-medium">
-                              {analysisResult?.recommendation}
-                            </p>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                              Guidance
-                            </Label>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                              {analysisResult?.message}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Alternative Suggestions */}
-                        <div className="space-y-3 rounded-xl border border-slate-200 bg-white/70 p-5 backdrop-blur-sm dark:border-slate-700 dark:bg-zinc-900/30">
-                          <h3 className="font-medium text-slate-900 dark:text-slate-100">
-                            Alternative Suggestions
-                          </h3>
-
-                          <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-800 dark:bg-blue-900/10">
-                            <p className="text-sm text-slate-700 dark:text-slate-300">
-                              {analysisResult.alternative_suggestion}
-                            </p>
+                          <div className="max-h-96 overflow-y-auto rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-zinc-900/50">
+                            <MarkdownRenderer
+                              content={analysisResult.health_analysis}
+                              className="prose-headings:text-slate-900 prose-p:text-slate-700 prose-a:text-blue-600 prose-strong:text-slate-900 prose-ul:text-slate-700 prose-li:text-slate-700 dark:prose-headings:text-slate-100 dark:prose-p:text-slate-300 dark:prose-a:text-blue-400 dark:prose-strong:text-slate-100 dark:prose-ul:text-slate-300 dark:prose-li:text-slate-300"
+                            />
                           </div>
                         </div>
                       </div>

@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -37,6 +40,8 @@ import {
   Loader2,
   Filter,
   Info,
+  Brain,
+  X,
 } from "lucide-react";
 import { analysisService } from "@/services/analysis";
 import type { AnalysisHistoryItem, PaginationMeta } from "@/types/analysis";
@@ -57,8 +62,7 @@ export default function HistoryPage() {
 
   // Utility functions
   const getMedicalConditionLabel = (condition: string): string => {
-    const found = MEDICAL_CONDITIONS.find((mc) => mc.value === condition);
-    return found?.label || condition;
+    return condition; // Backend now sends formatted condition names
   };
 
   const formatDate = (dateString: string) => {
@@ -115,22 +119,6 @@ export default function HistoryPage() {
       document.body.style.overflow = "";
     };
   }, [selectedItem]);
-
-  const getRecommendationColor = (recommendation: string) => {
-    switch (recommendation.toLowerCase()) {
-      case "recommended":
-        return "text-green-600 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/20 dark:border-green-800";
-      case "moderate intake":
-        return "text-yellow-600 bg-yellow-50 border-yellow-200 dark:text-yellow-400 dark:bg-yellow-900/20 dark:border-yellow-800";
-      case "avoid":
-      case "best avoided at night":
-        return "text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-900/20 dark:border-red-800";
-      case "consume with care":
-        return "text-orange-600 bg-orange-50 border-orange-200 dark:text-orange-400 dark:bg-orange-900/20 dark:border-orange-800";
-      default:
-        return "text-gray-600 bg-gray-50 border-gray-200 dark:text-gray-400 dark:bg-gray-900/20 dark:border-gray-800";
-    }
-  };
 
   const handleDelete = async (analysisId: string) => {
     try {
@@ -311,73 +299,76 @@ export default function HistoryPage() {
               {!isLoading && !error && historyData.length > 0 && (
                 <div>
                   <motion.div
-                    className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3"
+                    className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
                   >
                     {historyData.map((item) => (
                       <motion.div key={item._id}>
-                        <Card className="border-nutriscan-slate-200 dark:border-nutriscan-slate-700 dark:bg-nutriscan-slate-900/50 group hover:border-primary/20 h-full bg-white/70 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                              <div className="text-muted-foreground flex items-center space-x-2 rounded-full bg-slate-50 px-2 py-1 text-sm dark:bg-slate-800/50">
-                                <Calendar className="h-3.5 w-3.5" />
-                                <span>{formatDate(item.createdAt)}</span>
-                              </div>
-                              <div className="text-muted-foreground flex items-center space-x-2 rounded-full bg-slate-50 px-2 py-1 text-sm dark:bg-slate-800/50">
-                                <Clock className="h-3.5 w-3.5" />
-                                <span>{formatTime(item.createdAt)}</span>
-                              </div>
+                        <Card className="group h-full border border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl dark:border-slate-700 dark:bg-slate-900/60 dark:shadow-slate-900/20 dark:hover:border-blue-600">
+                          <CardHeader className="pb-4">
+                            <div className="mb-3 flex items-center justify-between">
+                              <Badge
+                                variant="secondary"
+                                className="border-blue-200 bg-blue-100 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                              >
+                                <Calendar className="mr-1 h-3 w-3" />
+                                {formatDate(item.createdAt)}
+                              </Badge>
+                              <Badge
+                                variant="secondary"
+                                className="border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+                              >
+                                <Clock className="mr-1 h-3 w-3" />
+                                {formatTime(item.createdAt)}
+                              </Badge>
                             </div>
-                            <CardTitle className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100 group-hover:text-primary mt-3 text-lg transition-colors">
+                            <CardTitle className="mb-2 truncate text-lg font-semibold text-slate-900 transition-colors group-hover:text-blue-600 dark:text-slate-100">
                               {item.result.predicted_food}
                             </CardTitle>
-                            <CardDescription className="flex items-center space-x-2">
-                              <Heart className="text-nutriscan-accent-rose h-4 w-4" />
-                              <span>
-                                Condition:{" "}
-                                <span className="font-medium">
-                                  {getMedicalConditionLabel(
-                                    item.medicalCondition,
-                                  )}
-                                </span>
+                            <CardDescription className="flex items-center gap-2 text-sm">
+                              <Heart className="h-4 w-4 flex-shrink-0 text-rose-500" />
+                              <span className="truncate font-medium text-slate-600 dark:text-slate-400">
+                                {getMedicalConditionLabel(
+                                  item.medicalCondition,
+                                )}
                               </span>
                             </CardDescription>
                           </CardHeader>
-                          <CardContent>
-                            <div className="space-y-3">
-                              <div className="flex flex-wrap gap-2">
-                                <span className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 text-sm font-medium whitespace-nowrap">
-                                  Nutrient Highlights:
-                                </span>
-                                <Badge
-                                  variant="outline"
-                                  className="bg-slate-50/50 font-medium dark:bg-slate-800/50"
-                                >
-                                  {item.result.nutrient_highlights}
-                                </Badge>
-                              </div>
-
-                              <div>
-                                <span className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-1.5 block text-sm font-medium">
-                                  Recommendation:
-                                </span>
-                                <div
-                                  className={`mt-1 rounded-lg px-2.5 py-1.5 text-sm font-semibold ${getRecommendationColor(
-                                    item.result.recommendation,
-                                  )}`}
-                                >
-                                  {item.result.recommendation}
+                          <CardContent className="pt-0">
+                            <div className="space-y-4">
+                              {/* Safety Message Preview */}
+                              <div className="rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 dark:border-amber-800/50 dark:from-amber-900/20 dark:to-orange-900/20">
+                                <div className="flex items-start gap-3">
+                                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/50">
+                                    <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="mb-2 text-xs font-semibold tracking-wide text-amber-800 uppercase dark:text-amber-300">
+                                      Safety Message
+                                    </p>
+                                    <p
+                                      className="overflow-hidden text-sm leading-relaxed text-amber-700 dark:text-amber-200"
+                                      style={{
+                                        display: "-webkit-box",
+                                        WebkitLineClamp: 3,
+                                        WebkitBoxOrient: "vertical",
+                                      }}
+                                    >
+                                      {item.result.safety_message}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
 
-                              <div className="flex space-x-2 pt-4">
+                              {/* Action Buttons */}
+                              <div className="flex gap-2">
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => setSelectedItem(item)}
-                                  className="group-hover:border-primary/30 flex-1 bg-gradient-to-r from-blue-600 to-blue-500 text-white transition-all duration-300"
+                                  className="flex-1 border-none bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm transition-all duration-300 hover:from-blue-700 hover:to-blue-600 hover:shadow-md"
                                 >
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Details
@@ -388,7 +379,7 @@ export default function HistoryPage() {
                                       variant="outline"
                                       size="sm"
                                       disabled={isDeleting === item._id}
-                                      className="text-red-600 transition-all duration-300 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
+                                      className="border-red-200 text-red-600 transition-all duration-300 hover:border-red-300 hover:bg-red-50 hover:text-red-700 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
                                     >
                                       {isDeleting === item._id ? (
                                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -397,12 +388,12 @@ export default function HistoryPage() {
                                       )}
                                     </Button>
                                   </AlertDialogTrigger>
-                                  <AlertDialogContent className="bg-white/90 backdrop-blur-md dark:bg-slate-900/90">
+                                  <AlertDialogContent className="border border-slate-200 bg-white/95 backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/95">
                                     <AlertDialogHeader>
-                                      <AlertDialogTitle>
+                                      <AlertDialogTitle className="text-slate-900 dark:text-slate-100">
                                         Delete Analysis
                                       </AlertDialogTitle>
-                                      <AlertDialogDescription>
+                                      <AlertDialogDescription className="text-slate-600 dark:text-slate-400">
                                         Are you sure you want to delete this
                                         analysis? This action cannot be undone.
                                       </AlertDialogDescription>
@@ -541,7 +532,7 @@ export default function HistoryPage() {
                             onClick={() => setSelectedItem(null)}
                             className="h-8 w-8 rounded-full p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
                           >
-                            ×
+                            <X className="h-4 w-4" />
                           </Button>
                         </div>
                         <CardDescription className="flex flex-wrap items-center gap-3">
@@ -593,71 +584,28 @@ export default function HistoryPage() {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                          <div className="grid grid-cols-1 gap-6">
                             <div>
-                              <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-2 flex items-center font-medium">
-                                <Filter className="mr-1.5 h-4 w-4" />
-                                Nutrient Highlights
+                              <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-3 flex items-center font-medium">
+                                <Brain className="mr-1.5 h-4 w-4" />
+                                Health Analysis
                               </h4>
-                              <Badge
-                                variant="outline"
-                                className="bg-slate-50/50 text-sm dark:bg-slate-800/50"
-                              >
-                                {selectedItem.result.nutrient_highlights}
-                              </Badge>
-                            </div>
-
-                            <div>
-                              <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-2 flex items-center font-medium">
-                                <Info className="mr-1.5 h-4 w-4" />
-                                Recommendation
-                              </h4>
-                              <div
-                                className={`rounded-lg border px-3 py-2 ${getRecommendationColor(
-                                  selectedItem.result.recommendation,
-                                )}`}
-                              >
-                                <span className="font-semibold">
-                                  {selectedItem.result.recommendation}
-                                </span>
+                              <div className="max-h-96 overflow-y-auto rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-zinc-900/50">
+                                <MarkdownRenderer
+                                  content={selectedItem.result.health_analysis}
+                                  className="prose-headings:text-slate-900 prose-p:text-slate-700 prose-a:text-blue-600 prose-strong:text-slate-900 prose-ul:text-slate-700 prose-li:text-slate-700 dark:prose-headings:text-slate-100 dark:prose-p:text-slate-300 dark:prose-a:text-blue-400 dark:prose-strong:text-slate-100 dark:prose-ul:text-slate-300 dark:prose-li:text-slate-300"
+                                />
                               </div>
                             </div>
                           </div>
 
                           <div>
                             <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-2 flex items-center font-medium">
-                              <Info className="mr-1.5 h-4 w-4" />
-                              Alternative Suggestions
+                              <AlertTriangle className="mr-1.5 h-4 w-4" />
+                              Safety Message
                             </h4>
                             <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-700 dark:bg-slate-800/50">
                               <p className="text-nutriscan-slate-900 dark:text-nutriscan-slate-100">
-                                {selectedItem.result.alternative_suggestion}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div>
-                            <h4 className="text-nutriscan-slate-700 dark:text-nutriscan-slate-300 mb-2 flex items-center font-medium">
-                              <AlertTriangle className="mr-1.5 h-4 w-4" />
-                              Safety Information
-                            </h4>
-                            <div
-                              className={`rounded-lg border px-3 py-3 ${
-                                selectedItem.result.is_safe_for_condition
-                                  ? "border-green-200 bg-green-50/80 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300"
-                                  : "border-red-200 bg-red-50/80 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
-                              }`}
-                            >
-                              <p className="flex items-center font-medium">
-                                {selectedItem.result.is_safe_for_condition
-                                  ? "✅ Safe"
-                                  : "⚠️ Not Safe"}{" "}
-                                for{" "}
-                                {getMedicalConditionLabel(
-                                  selectedItem.medicalCondition,
-                                )}
-                              </p>
-                              <p className="border-opacity-20 mt-2 border-t border-current pt-2 text-sm">
                                 {selectedItem.result.safety_message}
                               </p>
                             </div>

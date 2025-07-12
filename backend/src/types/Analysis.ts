@@ -6,10 +6,7 @@ export interface AnalysisBase {
   medicalCondition: string;
   result: {
     predicted_food: string;
-    nutrient_highlights: string;
-    recommendation: string;
-    alternative_suggestion: string;
-    is_safe_for_condition: boolean;
+    health_analysis: string;
     safety_message: string;
     message: string;
   };

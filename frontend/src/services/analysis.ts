@@ -14,7 +14,7 @@ export const analysisService = {
   ): Promise<AnalysisResponse> => {
     try {
       const formData = new FormData();
-      formData.append("foodImg", foodImage);
+      formData.append("file", foodImage);
       formData.append("selectedCondition", medicalCondition);
 
       const response = await axiosInstance.post<AnalysisResponse>(

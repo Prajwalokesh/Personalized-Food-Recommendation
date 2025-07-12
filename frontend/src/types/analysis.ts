@@ -1,9 +1,6 @@
 export interface AnalysisResult {
   predicted_food: string;
-  nutrient_highlights: string;
-  recommendation: string;
-  alternative_suggestion: string;
-  is_safe_for_condition: boolean;
+  health_analysis: string;
   safety_message: string;
   message: string;
 }
@@ -83,7 +80,7 @@ export type MedicalCondition =
 export const MEDICAL_CONDITIONS: { value: MedicalCondition; label: string }[] =
   [
     { value: "diabetes", label: "Diabetes" },
-    { value: "hypertension", label: "Hypertension (High Blood Pressure)" },
+    { value: "hypertension", label: "Hypertension" },
     { value: "heart_disease", label: "Heart Disease" },
     { value: "obesity", label: "Obesity" },
     { value: "kidney_disease", label: "Kidney Disease" },

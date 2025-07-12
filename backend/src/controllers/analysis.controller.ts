@@ -5,7 +5,7 @@ import axios from "axios";
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import { z } from "zod/v4";
-import { foodItemMap } from "../constants/foods";
+import { foodItemMap, getFormattedConditionName } from "../constants";
 import { sendError, sendSuccess } from "../utils/sendResponse";
 import {
   deleteAnalysisParamsSchema,
@@ -15,6 +15,7 @@ import {
 import Analysis from "../models/Analysis.model";
 import FoodImage from "../models/FoodImage.model";
 import FormData from "form-data";
+import { URLSearchParams } from "node:url";
 
 export async function getRecommendation(
   req: Request,
@@ -49,27 +50,22 @@ export async function getRecommendation(
 
   try {
     const formData = new FormData();
+    const queryParams = new URLSearchParams({
+      medical_condition: selectedCondition,
+    });
 
     formData.append(
       "file",
       fsSync.createReadStream(`./src/uploads/${file.filename}`),
     );
-    formData.append("medical_condition", selectedCondition || "diabetes");
 
     const response = await axios.post(
-      `${process.env.MODEL_BASE_URL}/predict-health`,
+      `${process.env.MODEL_BASE_URL}/predict-health?${queryParams.toString()}`,
       formData,
       { headers: formData.getHeaders() },
     );
-    const {
-      predicted_class,
-      nutrient_highlights,
-      recommendation,
-      alternative_suggestion,
-      is_safe_for_condition,
-      safety_message,
-      message,
-    } = response.data;
+    const { predicted_class, health_analysis, safety_message, message } =
+      response.data;
 
     const savedFile = await FoodImage.insertOne(
       {
@@ -86,10 +82,7 @@ export async function getRecommendation(
         medicalCondition: selectedCondition,
         result: {
           predicted_food: foodItemMap[predicted_class],
-          nutrient_highlights,
-          recommendation,
-          alternative_suggestion,
-          is_safe_for_condition,
+          health_analysis,
           safety_message,
           message,
         },
@@ -98,14 +91,19 @@ export async function getRecommendation(
     );
 
     const responseData = {
-      medicalCondition: analysisRecord.medicalCondition,
+      medicalCondition: getFormattedConditionName(
+        analysisRecord.medicalCondition,
+      ),
       foodImage: {
         originalFileName: savedFile.originalFileName,
         imageEndpoint: savedFile.imageEndPoint,
         fileId: savedFile.fileId,
         createdAt: savedFile.createdAt,
       },
-      result: analysisRecord.result,
+      result: {
+        ...analysisRecord.result,
+        predicted_food: foodItemMap[predicted_class] || predicted_class,
+      },
     };
 
     await mongoSession.commitTransaction();
@@ -155,6 +153,15 @@ export async function getAnalysisHistory(
       .select("-__v")
       .lean();
 
+    const formattedHistories = histories.map((history: any) => ({
+      ...history,
+      medicalCondition: getFormattedConditionName(history.medicalCondition),
+      result: {
+        ...history.result,
+        predicted_food: history.result.predicted_food,
+      },
+    }));
+
     const pagination = {
       currentPage: page,
       totalPages,
@@ -169,7 +176,7 @@ export async function getAnalysisHistory(
     };
 
     const responseData = {
-      histories,
+      histories: formattedHistories,
       pagination,
     };
 

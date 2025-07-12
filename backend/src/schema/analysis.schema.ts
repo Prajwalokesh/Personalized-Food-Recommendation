@@ -8,9 +8,7 @@ export const recommendationSchema = z.object({
     .regex(
       /^[a-zA-Z0-9_\s-]+$/,
       "Medical condition can only contain letters, numbers, spaces, underscores, and hyphens",
-    )
-    .optional()
-    .default("diabetes"),
+    ),
 });
 
 export const historyQuerySchema = z.object({

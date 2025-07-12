@@ -19,10 +19,7 @@ const analysisSchema = new mongoose.Schema<AnalysisDocument, AnalysisModel>(
     },
     result: {
       predicted_food: { type: String, required: true },
-      nutrient_highlights: { type: String, required: true },
-      recommendation: { type: String, required: true },
-      alternative_suggestion: { type: String, required: true },
-      is_safe_for_condition: { type: Boolean, required: true },
+      health_analysis: { type: String, required: true },
       safety_message: { type: String, required: true },
       message: { type: String, required: true },
     },

@@ -9,12 +9,7 @@ import upload from "../config/multer";
 
 const router = express.Router();
 
-router.post(
-  "/recommend",
-  checkAuth,
-  upload.single("foodImg"),
-  getRecommendation,
-);
+router.post("/recommend", checkAuth, upload.single("file"), getRecommendation);
 
 router.get("/history", checkAuth, getAnalysisHistory);
 
