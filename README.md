@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-# Personalized-Food-Recommendation
+Personalized-Food-Recommendation
 MINI PROJECT – Food Recommendation based on Medical Condition and Food Image Analysis.
 
 Food Recommendation System:
@@ -10,6 +9,6 @@ Full-Stack Architecture:
 frontend/: Likely manages the user interface.
 backend/: Probably handles server-side logic, possibly APIs for recommendations and image processing.
 services/: Might contain helper modules, business logic, or connectors (e.g., to machine learning models).
-=======
+
 # MINI PROJECT - Food Recommendation based on Medical Condition and Food Image Analysis
->>>>>>> 929a611 (Added frontend and backend)
+
