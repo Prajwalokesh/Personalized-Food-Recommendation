@@ -1,14 +1,28 @@
-Personalized-Food-Recommendation
-MINI PROJECT – Food Recommendation based on Medical Condition and Food Image Analysis.
+Personalized Food Recommendation System 🍎🤖
+Introduction
 
-Food Recommendation System:
-Likely suggests foods tailored to users’ medical conditions.
-Image Analysis Component:
-Probably processes or analyzes food images—perhaps recognizing food items visually to assist in recommendations.
-Full-Stack Architecture:
-frontend/: Likely manages the user interface.
-backend/: Probably handles server-side logic, possibly APIs for recommendations and image processing.
-services/: Might contain helper modules, business logic, or connectors (e.g., to machine learning models).
+Individuals with dietary restrictions, such as diabetes, hypertension, or severe allergies, often struggle to make safe and healthy food choices. Our project leverages Artificial Intelligence (AI)—using Convolutional Neural Networks (CNN) for food image recognition and Large Language Models (LLM) for reasoning—to provide real-time, personalized food recommendations. By simply scanning a meal, users can receive tailored suggestions, ensuring safer and healthier eating habits.
 
-# MINI PROJECT - Food Recommendation based on Medical Condition and Food Image Analysis
+Key Features
 
+📷 Food Image Analysis – Detects and classifies food items using CNN with 70% accuracy.
+
+🧠 AI-powered Reasoning – Uses LLM to suggest portion sizes, alternatives, and dietary advice.
+
+🌐 MERN Stack Integration – Smooth frontend and backend handling for real-time processing.
+
+💊 Health-Aware Recommendations – Personalized suggestions based on chronic diseases or allergies.
+
+📊 Tested & Validated – Model shows promising results in classification and dietary recommendation accuracy.
+
+🚀 Future Enhancements – Expanding dataset, improving accuracy, and adding broader chronic disease coverage.
+
+Tech Stack
+
+Frontend: React (MERN)
+
+Backend: Node.js, Express.js
+
+Database: MongoDB
+
+Machine Learning: Python (CNN + LLM Integration)
