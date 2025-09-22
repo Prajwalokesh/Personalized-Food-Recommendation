@@ -5,7 +5,9 @@
   "main": "src/app.ts",
   "scripts": {
     "dev": "nodemon",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "build": "tsc",
+   "start": "node dist/app.js"
   },
   "keywords": [],
   "author": "",
